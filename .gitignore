@@ -1,0 +1,10 @@
+*.pdf
+*.cmd
+
+*workspace
+
+*0BACKUP
+
+Aufgabe_*/.*
+Aufgabe_*/Debug
+Aufgabe_*/targetConfigs
