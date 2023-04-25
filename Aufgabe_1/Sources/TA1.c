@@ -3,8 +3,10 @@
 #include "TA1.h"
 #include "event.h"
 
-#define BTNMAX      2
+#define BTN_MAX     2
 #define COUNT_MAX   5
+
+LOCAL Void Button_debounce(const Button* curr_button);
 
 /* Port definition:
  * Port 2: Pin 7 => output, LED1
@@ -12,21 +14,20 @@
  * Port 1: Pin 0 => input,  BTN1
  * Port 1: Pin 1 => input,  BTN2
  */
-
-
 // ---------------------------------------------------------------------------------> Definition of Button 1
 LOCAL const button_const BTN1_CONST = { BIT1, EVENT_BTN1, (const Char *) &P1IN };
 LOCAL button_var BTN1_VAR;
-LOCAL Button BTN_1;
-// LOCAL const Button BTN_1;  WHO CAN THIS BE SOLVED( A const pointer)?
+LOCAL const Button BTN_1 = { .btn_const = &BTN1_CONST, .btn_var = &BTN1_VAR };
 
 // ---------------------------------------------------------------------------------> Definition of Button 2
 LOCAL const button_const BTN2_CONST = { BIT0, EVENT_BTN2, (const Char *) &P1IN };
 LOCAL button_var BTN2_VAR;
-LOCAL Button BTN_2;
+LOCAL const Button BTN_2 = {.btn_const = &BTN2_CONST, .btn_var = &BTN2_VAR };
 
 // ---------------------------------------------------------------------------------> Definition for Button Array
-LOCAL Button BUTTONS[BTNMAX];
+LOCAL const Button* const BUTTONS[] = { &BTN_1, &BTN_2, 0 };
+LOCAL UChar BTN_INDEX;
+//LOCAL UChar index;
 
 // See help to struct const declaration:
 // https://www.eevblog.com/forum/microcontrollers/static-const-struct-vs-static-const-of-its-members/
@@ -34,25 +35,25 @@ LOCAL Button BUTTONS[BTNMAX];
 #pragma FUNC_ALWAYS_INLINE(TA1_init)
 GLOBAL Void TA1_init(Void) {
 
-   //for(int i = 0; i < BTNMAX; i++)
-   //{
-//
-   //}
-
    BTN1_VAR.cnt = 0;
    BTN2_VAR.cnt = 0;
 
    BTN1_VAR.state = S0;
    BTN2_VAR.state = S0;
 
-   BTN_1.btn_var   = &BTN1_VAR;
-   BTN_1.btn_const = &BTN1_CONST;
-
-   BTN_2.btn_var   = &BTN2_VAR;
-   BTN_2.btn_const = &BTN2_CONST;
-
-   BUTTONS[0] = BTN_1;
-   BUTTONS[1] = BTN_2;
+   //BTN_1.btn_var   = &BTN1_VAR;
+   //BTN_1.btn_const = &BTN1_CONST;
+//
+   //BTN_2.btn_var   = &BTN2_VAR;
+   //BTN_2.btn_const = &BTN2_CONST;
+   
+   //BTN_INDEX = BUTTONS[0];
+   
+   //BUTTONS[0] = &BTN_1;
+   //BUTTONS[1] = &BTN_2;
+   //BUTTONS[2] = 0;
+   
+   BTN_INDEX = 0;
 
    CLRBIT(TA1CTL,   MC0 | MC1  // stop mode
                   | TAIE       // disable interrupt
@@ -91,64 +92,84 @@ __interrupt Void TIMER1_A1_ISR(Void) {
       | S1    | 0     | =0   | S0     | Cnt    | 1    |
     */
 
-   // Was ist wenn beide gleichzeitig gedrückt?
-   LOCAL Button* curr_button;
+   // Schleife in der ISR hier zulï¿½ssig?
+   //int i;
+   //for(i = 0; i < BTN_MAX; i++)
+   //{
+   //    Button_debounce(&BUTTONS[i]);
+   //}
+   
 
-   // Schleife in der ISR hier zulässig?
-   int i;
-   for(i = 0; i < BTNMAX; i++)
+   //if(BTN_INDEX >= (BTN_MAX - 1))
+   //{
+   //    BTN_INDEX = 0;
+   //}
+   
+   //Button_debounce(BTN_INDEX);
+   //BTN_INDEX++;
+   //if(BTN_INDEX == 0)
+   //{
+   //    BTN_INDEX = 0;
+   //}
+   
+   Button_debounce(BUTTONS[BTN_INDEX]);
+   BTN_INDEX++;
+   if(BTN_INDEX >= BTN_MAX)
    {
-       if(TSTBIT(*BUTTONS[i].btn_const->port, BUTTONS[i].btn_const->pin))
-       {
-           curr_button = &BUTTONS[i];
-       }
+       BTN_INDEX = 0;
    }
-
-   // Würde sich auch in extra Funktion machen lassen aber dürfen wir in der ISR ja nicht :(
-   if(TSTBIT(*curr_button->btn_const->port, curr_button->btn_const->pin)) { //--------------------> BUTTON PRESSED
-      if(curr_button->btn_var->state == S0) //----------------------------------> State S0
-      {
-         if(curr_button->btn_var->cnt < COUNT_MAX)
-         {
-             curr_button->btn_var->cnt++;
-         }
-         else
-         {
-            curr_button->btn_var->state = S1;
-            Event_set(curr_button->btn_const->event); // set up event
-         }
-      }
-      else if(curr_button->btn_var->state == S1) //-----------------------------> State S1
-      {
-         if(curr_button->btn_var->cnt < COUNT_MAX)
-         {
-             curr_button->btn_var->cnt++;
-         }
-      }
-   }
-   else //-------------------------------------------------------------------------> BUTTON RELEASED
-   {
-      if(curr_button->btn_var->state == S0) //----------------------------------> State S0
-      {
-         if(curr_button->btn_var->cnt > 0)
-         {
-             curr_button->btn_var->cnt--;
-         }
-      }
-      else if(curr_button->btn_var->state == S1) //-----------------------------> State S1
-      {
-         if(curr_button->btn_var->cnt > 0)
-         {
-             curr_button->btn_var->cnt--;
-         }
-         else
-         {
-             curr_button->btn_var->state = S0;
-         }
-      }
-   }
-
+   
+   //Button_debounce(&BUTTONS[0]);
+   //Button_debounce(&BUTTONS[1]);
+   
    CLRBIT(TA1CTL, TAIFG);           // clear interrupt flag
    __low_power_mode_off_on_exit();  // restore Active Mode on return
 }
 
+#pragma FUNC_ALWAYS_INLINE(Button_debounce)
+LOCAL Void Button_debounce(const Button* curr_button) {
+
+    if(TSTBIT(*curr_button->btn_const->port, curr_button->btn_const->pin)) //--------------------> BUTTON PRESSED
+    {
+          if(curr_button->btn_var->state == S0) //----------------------------------> State S0
+          {
+             if(curr_button->btn_var->cnt < COUNT_MAX)
+             {
+                 curr_button->btn_var->cnt++;
+             }
+             else
+             {
+                curr_button->btn_var->state = S1;
+                Event_set(curr_button->btn_const->event); // set up event
+             }
+          }
+          else if(curr_button->btn_var->state == S1) //-----------------------------> State S1
+          {
+             if(curr_button->btn_var->cnt < COUNT_MAX)
+             {
+                 curr_button->btn_var->cnt++;
+             }
+          }
+       }
+       else //-------------------------------------------------------------------------> BUTTON RELEASED
+       {
+          if(curr_button->btn_var->state == S0) //----------------------------------> State S0
+          {
+             if(curr_button->btn_var->cnt > 0)
+             {
+                 curr_button->btn_var->cnt--;
+             }
+          }
+          else if(curr_button->btn_var->state == S1) //-----------------------------> State S1
+          {
+             if(curr_button->btn_var->cnt > 0)
+             {
+                 curr_button->btn_var->cnt--;
+             }
+             else
+             {
+                 curr_button->btn_var->state = S0;
+             }
+          }
+       }
+}

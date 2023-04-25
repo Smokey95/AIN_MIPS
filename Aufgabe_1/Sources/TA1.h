@@ -25,7 +25,7 @@ typedef struct {
 
 // Struct representing button
 typedef struct {
-    const button_const*   btn_const;
+    button_const const*   btn_const;
     button_var*     btn_var;
 }Button;
 

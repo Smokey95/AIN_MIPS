@@ -1,12 +1,15 @@
 @startuml
-binary "Enable" as EN
+
+skinparam monochrome reverse
+
+binary "Pattern1" as PT1
 
 @0
-EN is low
+PT1 is high
 
-@5
-EN is high
+@200
+PT1 is low
 
 @10
-EN is low
+PT1 is low
 @enduml

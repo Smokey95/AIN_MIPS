@@ -40,6 +40,7 @@ LOCAL const UChar blink_pattern[] = {
         2, 2, 2, 2, 2, 8, 0                                                     // Pattern 6
 };
 
+//LOCAL const Uchar blink_ptr_arr[] = {0, 3, 6, 9, 12, 17,};
 LOCAL const UChar * const blink_ptr_arr[] = {
     &blink_pattern[0],
     &blink_pattern[3],
