@@ -5,19 +5,7 @@ In this task, you should first familiarize yourself with the development environ
 
 ## LED pattern flashing `TA0.c/.h`
 
-```plantuml
-@startuml
-binary "Enable" as EN
+![pattern](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/Smokey95/AIN_MIPS/master/Aufgabe_1/pattern.iuml)
 
-@0
-EN is low
-
-@5
-EN is high
-
-@10
-EN is low
-@enduml
-```
 
 ## Button debouncing `TA1.c/.h`
