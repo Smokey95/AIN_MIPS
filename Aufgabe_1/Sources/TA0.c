@@ -115,7 +115,7 @@ __interrupt Void TIMER0_A1_ISR(Void) {
 
         // End of a muster is defined as 0 (see muster definition)
         // This will guarantee that the current blink run to end
-        if (*((blink_ptr_arr[pattern_index]) + array_index) == 0)
+        if (*(blink_ptr_arr[pattern_index] + array_index) == 0)
         {
             array_index = 0;
             pattern_index = req_pattern_index;

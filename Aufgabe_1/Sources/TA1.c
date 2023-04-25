@@ -25,7 +25,7 @@ LOCAL button_var BTN2_VAR;
 LOCAL const Button BTN_2 = {.btn_const = &BTN2_CONST, .btn_var = &BTN2_VAR };
 
 // ---------------------------------------------------------------------------------> Definition for Button Array
-LOCAL const Button* const BUTTONS[] = { &BTN_1, &BTN_2, 0 };
+LOCAL const Button* const BUTTONS[] = { &BTN_1, &BTN_2};
 LOCAL UChar BTN_INDEX;
 //LOCAL UChar index;
 
@@ -40,18 +40,6 @@ GLOBAL Void TA1_init(Void) {
 
    BTN1_VAR.state = S0;
    BTN2_VAR.state = S0;
-
-   //BTN_1.btn_var   = &BTN1_VAR;
-   //BTN_1.btn_const = &BTN1_CONST;
-//
-   //BTN_2.btn_var   = &BTN2_VAR;
-   //BTN_2.btn_const = &BTN2_CONST;
-   
-   //BTN_INDEX = BUTTONS[0];
-   
-   //BUTTONS[0] = &BTN_1;
-   //BUTTONS[1] = &BTN_2;
-   //BUTTONS[2] = 0;
    
    BTN_INDEX = 0;
 
@@ -91,36 +79,14 @@ __interrupt Void TIMER1_A1_ISR(Void) {
       | S1    | 0     | >0   | S1     | Cnt-1  | 1    |
       | S1    | 0     | =0   | S0     | Cnt    | 1    |
     */
-
-   // Schleife in der ISR hier zul�ssig?
-   //int i;
-   //for(i = 0; i < BTN_MAX; i++)
-   //{
-   //    Button_debounce(&BUTTONS[i]);
-   //}
-   
-
-   //if(BTN_INDEX >= (BTN_MAX - 1))
-   //{
-   //    BTN_INDEX = 0;
-   //}
-   
-   //Button_debounce(BTN_INDEX);
-   //BTN_INDEX++;
-   //if(BTN_INDEX == 0)
-   //{
-   //    BTN_INDEX = 0;
-   //}
    
    Button_debounce(BUTTONS[BTN_INDEX]);
+   
    BTN_INDEX++;
    if(BTN_INDEX >= BTN_MAX)
    {
        BTN_INDEX = 0;
    }
-   
-   //Button_debounce(&BUTTONS[0]);
-   //Button_debounce(&BUTTONS[1]);
    
    CLRBIT(TA1CTL, TAIFG);           // clear interrupt flag
    __low_power_mode_off_on_exit();  // restore Active Mode on return
