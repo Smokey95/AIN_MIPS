@@ -27,6 +27,9 @@ typedef unsigned int TEvent;
 #define EVENT_BTN1  EVENT_1  // click on button 1
 #define EVENT_BTN2  EVENT_2  // click on button 2
 
+#define EVENT_UPDATE  EVENT_11 // ADD DESCRIPTION
+#define EVENT_DONE    EVENT_12 // ADD DESCRIPTION
+
 EXTERN Void Event_init(Void);
 EXTERN Void Event_wait(Void);
 EXTERN Void Event_set(TEvent);

@@ -3,6 +3,8 @@
 #include "event.h"
 #include "TA0.h"
 #include "TA1.h"
+#include "UCA1.h"
+#include "Handler.h"
 
 GLOBAL Int _system_pre_init(Void) {
    // stop watchdog timer
@@ -74,8 +76,10 @@ GLOBAL Void main(Void) {
    CS_init();     // set up Clock System
    GPIO_init();   // set up Ports
    Event_init();
-   TA0_init();    // set up Timer A0
-   TA1_init();    // set up Timer A1
+   TA0_init();    // set up Timer A0 (LED     Interrupts)
+   TA1_init();    // set up Timer A1 (Buttons Interrupts)
+   UCA1_init();   // set up SPI Interface
+   Handler_init();// set up Handler
 
    while(TRUE) {
       Event_wait();
