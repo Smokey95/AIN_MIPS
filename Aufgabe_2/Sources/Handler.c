@@ -10,10 +10,9 @@
 // data type of a constant function pointer
 typedef Void (* VoidFunc)(Void);
 
-LOCAL Int pattern_cnt;            // counter for blink pattern from task 1
-LOCAL UChar button_index;         // identify the external BCD Button that was pressed
-LOCAL UInt cnt_idx;               // index for the counter
-LOCAL UChar bcd_cnt[DIGISIZE];    // BCD counter
+LOCAL Int pattern_cnt;              // counter for blink pattern from task 1
+LOCAL UChar button_index;           // identify the external BCD Button that was pressed
+LOCAL UChar bcd_cnt[DIGISIZE];       // BCD counter
 
 // functional prototypes
 LOCAL Void State0(Void);
@@ -102,9 +101,20 @@ GLOBAL Void Number_Handler(Void) {
         else                        // decrement
         {
             bcd_cnt[button_index] = (bcd_cnt[button_index] - 1);
+            
             if(bcd_cnt[button_index] GE BASE)
             {
                 bcd_cnt[button_index] = BASE - 1;
+                
+                button_index++;
+                if(button_index GE DIGISIZE)
+                {
+                    button_index = 0;
+                }
+                else
+                {
+                    Event_set(EVENT_UPDATE_CNT);
+                }
             }
         }
 
@@ -171,6 +181,5 @@ GLOBAL Void Handler_init(Void) {
     bcd_cnt[1] = 0;
     bcd_cnt[2] = 0;
     bcd_cnt[3] = 0;
-    cnt_idx = 1;            // initial counter index
 }
 
