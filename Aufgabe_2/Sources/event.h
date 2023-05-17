@@ -24,11 +24,18 @@ typedef unsigned int TEvent;
 #define EVENT_16    0x8000
 #define ALL_EVENTS  0xFFFF
 
-#define EVENT_BTN1  EVENT_1  // click on button 1
-#define EVENT_BTN2  EVENT_2  // click on button 2
+#define EVENT_BTN1  EVENT_1         // click on button 1
+#define EVENT_BTN2  EVENT_2         // click on button 2
+#define EVENT_BTN3  EVENT_3         // click on button 3 (external button 0)
+#define EVENT_BTN4  EVENT_4         // click on button 4 (external button 1)
+#define EVENT_BTN5  EVENT_5         // click on button 5 (external button 2)
+#define EVENT_BTN6  EVENT_6         // click on button 6 (external button 3)
 
-#define EVENT_UPDATE  EVENT_11 // ADD DESCRIPTION
-#define EVENT_DONE    EVENT_12 // ADD DESCRIPTION
+#define EVEMT_IMA   EVENT_10        // I�m Alive
+#define EVENT_UPDATE_BCD  EVENT_11  // ADD DESCRIPTION
+#define EVENT_DONE_BCD    EVENT_12  // ADD DESCRIPTION
+
+#define EVENT_UPDATE_CNT  EVENT_13  // Update count
 
 EXTERN Void Event_init(Void);
 EXTERN Void Event_wait(Void);

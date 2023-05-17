@@ -44,7 +44,7 @@ LOCAL const TFrame init[INITSIZE] = {
    { 0x0B, 0x03 }   // display all numbers
 };
 
-#pragma FUNC_ALWAYS_INLINE(emit)
+// #pragma FUNC_ALWAYS_INLINE(emit)
 LOCAL Void emit(const UChar adr, const UChar val) {
    UChar ch = UCA1RXBUF;        // RXBUF auslesen, UCRXIFG := 0, UCOE := 0
    CLRBIT(P2OUT, BIT3);         // Select aktivieren
@@ -61,9 +61,9 @@ LOCAL Void emit(const UChar adr, const UChar val) {
 GLOBAL Void UCA1_init(Void) {
    // set up Universal Serial Communication Interface A
    SETBIT(UCA1CTLW0, UCSWRST);  // UCA1 software reset
-   UCA1BRW = 0;          // prescaler
+   UCA1BRW = 20;          // prescaler
 
-   // in Übereinstimung mit dem SPI-Timing-Diagramm von AS1108
+   // in ï¿½bereinstimung mit dem SPI-Timing-Diagramm von AS1108
    UCA1CTLW0 = UCCKPH           // 15: clock phase select: rising edge
              | 0                // 14: clock polarity: inactive low
              | UCMSB            // 13: MSB first
@@ -98,9 +98,9 @@ __interrupt Void UCA1_ISR(Void) {
    CLRBIT(P2OUT, BIT3);           // Select aktivieren
    if (idx GE DATASIZE) {
       SETBIT(P2OUT,  BIT3);       // Select deaktivieren
-      Event_set(EVENT_DONE);      // Event senden
+      Event_set(EVENT_DONE_BCD);      // Event senden
       __low_power_mode_off_on_exit();
    } else {
-      UCA1TXBUF = data[idx++];    // nächstes Byte ausgeben
+      UCA1TXBUF = data[idx++];    // output next byte
    }
 }

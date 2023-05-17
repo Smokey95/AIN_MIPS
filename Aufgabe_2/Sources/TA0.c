@@ -71,7 +71,8 @@ GLOBAL Void TA0_init(Void) {
    cnt_led              = 0;
    pattern_index        = 0;
    cur_pattern_val      = 0;
-   req_pattern_index    = 0;
+   
+   req_pattern_index    = 1;  // Initialise with pattern 1 (personal preference)
 
    CLRBIT(TA0CTL, MC0 | MC1   // stop mode
                   | TAIE      // disable interrupt
@@ -91,7 +92,7 @@ GLOBAL Void TA0_init(Void) {
    SETBIT(TA0CTL, TAIE        // enable interrupt
                 | TAIFG);     // set interrupt flag
 
-   // Get the first blink pattern (should be initializer)
+   // Get the third blink pattern (should be initializer but will be overwritten by req_pattern_index)
    cur_pattern_val = *(blink_ptr_arr[pattern_index] + array_index);
    SETBIT(P1OUT, BIT2);
 }

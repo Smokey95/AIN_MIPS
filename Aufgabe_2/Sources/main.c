@@ -43,19 +43,26 @@ LOCAL Void CS_init(Void) {
 
 #pragma FUNC_ALWAYS_INLINE(GPIO_init)
 LOCAL Void GPIO_init(Void) {
-   // Port 2: Pin 7 => output, LED1
-   // Port 1: Pin 2 => output, LED2
-   // Port 1: Pin 0 => input,  BTN1
-   // Port 1: Pin 1 => input,  BTN2
+   
+   /* Port definition:
+ * Port 2: Pin 7 => output, LED1
+ * Port 1: Pin 2 => output, LED2
+ * Port 1: Pin 1 => input,  BTN1
+ * Port 1: Pin 0 => input,  BTN2
+ * Port 3: Pin 0 => input,  BTN3 (external button BTN 0)
+ * Port 3: Pin 1 => input,  BTN4 (external button BTN 1)
+ * Port 3: Pin 2 => input,  BTN5 (external button BTN 2)
+ * Port 3: Pin 3 => input,  BTN6 (external button BTN 3)
+ */
 
    //                   Port2       Port1
    //               Bit 76543210    76543210
    PAOUT  = VAL_16BIT(0b00000000, 0b00000000); // clear all outputs
-   PADIR  = VAL_16BIT(0b10000000, 0b00000100); // direction, set outputs
+   PADIR  = VAL_16BIT(0b10001000, 0b00000100); // direction, set outputs
    PAIFG  = VAL_16BIT(0b00000000, 0b00000000); // clear all interrupt flags
    PAIE   = VAL_16BIT(0b00000000, 0b00000000); // disable all GPIO interrupts
    PASEL0 = VAL_16BIT(0b00000000, 0b00000000);
-   PASEL1 = VAL_16BIT(0b00000000, 0b00000000);
+   PASEL1 = VAL_16BIT(0b01110000, 0b00000000);
    PAREN  = VAL_16BIT(0b00000000, 0b00000000); // without pull up
 
    //                   Port4       Port3
@@ -71,31 +78,23 @@ LOCAL Void GPIO_init(Void) {
 }
 
 GLOBAL Void main(Void) {
-   Int cnt = MUSTER1;   // Should not be changed (because of initialisations)
 
    CS_init();     // set up Clock System
    GPIO_init();   // set up Ports
    Event_init();
+   UCA1_init();   // set up SPI Interface
    TA0_init();    // set up Timer A0 (LED     Interrupts)
    TA1_init();    // set up Timer A1 (Buttons Interrupts)
-   UCA1_init();   // set up SPI Interface
    Handler_init();// set up Handler
 
    while(TRUE) {
-      Event_wait();
 
-      if (Event_tst(EVENT_BTN2)) {
-         Event_clr(EVENT_BTN2);
-         //TGLBIT(P1OUT, BIT2);     // @DEBUG: Just for button check
-         if (++cnt GT MUSTER6) {
-            cnt = MUSTER1;
-         }
-         set_blink_muster(cnt);
-      }
-      if (Event_tst(EVENT_BTN1)) {
-         Event_clr(EVENT_BTN1);
-         TGLBIT(P2OUT, BIT7);
-      }
+      Event_wait();        // wait for event
+      
+      Button_Handler();    // handle button events
+      Number_Handler();    // handle number events
+      AS1108_Handler();    // handle AS1108 events
+      
       if (Event_err()) {
          SETBIT(P1OUT, BIT2); // LED on
       }

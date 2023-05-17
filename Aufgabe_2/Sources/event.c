@@ -13,11 +13,9 @@ GLOBAL Void Event_init(Void) {
 #pragma FUNC_ALWAYS_INLINE(Event_wait)
 GLOBAL Void Event_wait(Void) {
    _disable_interrupt();
-   //_enable_interrupt();
    if (event EQ NO_EVENTS) {
       _low_power_mode_3();
    }
-   //_disable_interrupt();
    _enable_interrupt();
 }
 

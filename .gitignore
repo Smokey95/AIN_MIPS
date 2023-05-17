@@ -3,6 +3,8 @@
 
 *workspace
 
+*.vscode
+
 *0BACKUP
 
 Aufgabe_*/.*
