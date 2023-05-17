@@ -83,9 +83,20 @@ GLOBAL Void Number_Handler(Void) {
         if(TSTBIT(P2OUT, BIT7))     // increment
         {
             bcd_cnt[button_index] = (bcd_cnt[button_index] + 1);
+            
             if(bcd_cnt[button_index] GE BASE)
             {
                 bcd_cnt[button_index] = 0;
+                
+                button_index++;
+                if(button_index GE DIGISIZE)
+                {
+                    button_index = 0;
+                }
+                else
+                {
+                    Event_set(EVENT_UPDATE_CNT);
+                }
             }
         }
         else                        // decrement
@@ -97,7 +108,11 @@ GLOBAL Void Number_Handler(Void) {
             }
         }
 
-        Event_set(EVENT_UPDATE_BCD);
+        if(!Event_tst(EVENT_UPDATE_CNT))
+        {
+            Event_set(EVENT_UPDATE_BCD);
+        }
+        
     }
     
 }
