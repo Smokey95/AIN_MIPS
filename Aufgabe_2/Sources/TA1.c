@@ -8,6 +8,11 @@
 
 LOCAL Void Button_debounce(const Button* curr_button);
 
+//static void init_buttons(button_var* btn) {
+//   btn->cnt = 0;
+//   btn->state = S0;
+//}
+
 /* Port definition:
  * Port 2: Pin 7 => output, LED1
  * Port 1: Pin 2 => output, LED2
@@ -58,7 +63,14 @@ LOCAL UChar BTN_INDEX;
 #pragma FUNC_ALWAYS_INLINE(TA1_init)
 GLOBAL Void TA1_init(Void) {
 
-   // Update with a loop
+   // Initialize buttons
+   //init_buttons(&BTN1_VAR);
+   //init_buttons(&BTN2_VAR);
+   //init_buttons(&BTN3_VAR);
+   //init_buttons(&BTN4_VAR);
+   //init_buttons(&BTN5_VAR);
+   //init_buttons(&BTN6_VAR);
+   // Update with a loop?
    BTN1_VAR.cnt = 0;
    BTN2_VAR.cnt = 0;
    BTN3_VAR.cnt = 0;
@@ -131,47 +143,27 @@ __interrupt Void TIMER1_A1_ISR(Void) {
 #pragma FUNC_ALWAYS_INLINE(Button_debounce)
 LOCAL Void Button_debounce(const Button* curr_button) {
 
-    if(TSTBIT(*curr_button->btn_const->port, curr_button->btn_const->pin)) //--------------------> BUTTON PRESSED
-    {
-          if(curr_button->btn_var->state == S0) //----------------------------------> State S0
-          {
-             if(curr_button->btn_var->cnt < COUNT_MAX)
-             {
-                 curr_button->btn_var->cnt++;
-             }
-             else
-             {
-                curr_button->btn_var->state = S1;
-                Event_set(curr_button->btn_const->event); // set up event
-             }
-          }
-          else if(curr_button->btn_var->state == S1) //-----------------------------> State S1
-          {
-             if(curr_button->btn_var->cnt < COUNT_MAX)
-             {
-                 curr_button->btn_var->cnt++;
-             }
-          }
-       }
-       else //-------------------------------------------------------------------------> BUTTON RELEASED
-       {
-          if(curr_button->btn_var->state == S0) //----------------------------------> State S0
-          {
-             if(curr_button->btn_var->cnt > 0)
-             {
-                 curr_button->btn_var->cnt--;
-             }
-          }
-          else if(curr_button->btn_var->state == S1) //-----------------------------> State S1
-          {
-             if(curr_button->btn_var->cnt > 0)
-             {
-                 curr_button->btn_var->cnt--;
-             }
-             else
-             {
-                 curr_button->btn_var->state = S0;
-             }
-          }
-       }
+   if(TSTBIT(*curr_button->btn_const->port, curr_button->btn_const->pin)) //--------------------> BUTTON PRESSED
+   {
+      if(curr_button->btn_var->cnt < COUNT_MAX)
+      {
+          curr_button->btn_var->cnt++;
+      }
+      else if (curr_button->btn_var->state == S0)
+      {
+          curr_button->btn_var->state = S1;
+          Event_set(curr_button->btn_const->event); // set up event           
+      }
+   }
+   else //-------------------------------------------------------------------------> BUTTON RELEASED
+   {
+     if(curr_button->btn_var->cnt > 0)
+     {
+         curr_button->btn_var->cnt--;
+     }
+     else
+     {
+         curr_button->btn_var->state = S0;
+     }
+   }
 }

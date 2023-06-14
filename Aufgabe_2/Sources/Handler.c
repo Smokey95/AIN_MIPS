@@ -10,26 +10,25 @@
 // data type of a constant function pointer
 typedef Void (* VoidFunc)(Void);
 
-LOCAL Int pattern_cnt;              // counter for blink pattern from task 1
+LOCAL Int   pattern_cnt;            // counter for blink pattern from task 1
 LOCAL UChar button_index;           // identify the external BCD Button that was pressed
-LOCAL UChar bcd_cnt[DIGISIZE];       // BCD counter
+LOCAL UChar bcd_cnt[DIGISIZE];      // BCD counter
 
 // functional prototypes
 LOCAL Void State0(Void);
 LOCAL Void State1(Void);
 
-LOCAL VoidFunc state;       // function pointer to the current state function
-LOCAL UInt idx;             // index for the BCD counter
-//@FAQ: (allows to update counter during bcd update?)
-LOCAL UChar tmp[DIGISIZE];  // temporary variable for the BCD counter
-
+LOCAL VoidFunc state;               // function pointer to the current state function
+LOCAL UInt idx;                     // index for the BCD counter
 
 // ---------------------------------------------------------------------------- Button Handling
 
-LOCAL Void BCD_Button_Handler(TEvent arg, UChar bcd_button){
-    Event_clr(arg);                 // clear the regarding button event
-    button_index = bcd_button;      // set the button index
-    Event_set(EVENT_UPDATE_CNT);    // set event for updating BCD
+static void BCD_Button_Handler(TEvent arg, UChar bcd_button){
+    if(Event_tst(arg)) {
+        Event_clr(arg);                 // clear the regarding button event
+        button_index = bcd_button;      // set the button index
+        Event_set(EVENT_UPDATE_CNT);    // set event for updating BCD
+    }
 }
 
 GLOBAL Void Button_Handler(Void) {
@@ -46,28 +45,13 @@ GLOBAL Void Button_Handler(Void) {
     // internal button BTN 1    [inc/dec toggle]
     if (Event_tst(EVENT_BTN1)) {
         Event_clr(EVENT_BTN1);
-        TGLBIT(P2OUT, BIT7);    // checking the PIN is cleaner than handling a second variable
+        TGLBIT(P2OUT, BIT7);
     }
 
-    // external button BTN 0    [BCD button at segment 0]
-    if(Event_tst(EVENT_BTN3)) {
-        BCD_Button_Handler(EVENT_BTN3, 0);
-    }
-
-    // external button BTN 1   [BCD button at segment 1]
-    if(Event_tst(EVENT_BTN4)) {
-        BCD_Button_Handler(EVENT_BTN4, 1);
-    }
-
-    // external button BTN 2  [BCD button at segment 2]
-    if(Event_tst(EVENT_BTN5)) {
-        BCD_Button_Handler(EVENT_BTN5, 2);
-    }
-
-    // external button BTN 3 [BCD button at segment 3]
-    if(Event_tst(EVENT_BTN6)) {
-        BCD_Button_Handler(EVENT_BTN6, 3);
-    }
+    BCD_Button_Handler(EVENT_BTN3, 0);
+    BCD_Button_Handler(EVENT_BTN4, 1);
+    BCD_Button_Handler(EVENT_BTN5, 2);
+    BCD_Button_Handler(EVENT_BTN6, 3);
 
 }
 
@@ -78,16 +62,17 @@ GLOBAL Void Number_Handler(Void) {
     if(Event_tst(EVENT_UPDATE_CNT)) {
         Event_clr(EVENT_UPDATE_CNT);
 
-        //@todo: must be expand like defined in the task
-        if(TSTBIT(P2OUT, BIT7))     // increment
+        // checking the PIN is cleaner than handling a second variable
+        if(!TSTBIT(P2OUT, BIT7)) //--------------------------------- increment
         {
             bcd_cnt[button_index] = (bcd_cnt[button_index] + 1);
             
+            // check on overflow
             if(bcd_cnt[button_index] GE BASE)
             {
                 bcd_cnt[button_index] = 0;
-                
                 button_index++;
+                // check if end of number space is reached
                 if(button_index GE DIGISIZE)
                 {
                     button_index = 0;
@@ -98,15 +83,16 @@ GLOBAL Void Number_Handler(Void) {
                 }
             }
         }
-        else                        // decrement
+        else //--------------------------------------------------- decrement
         {
             bcd_cnt[button_index] = (bcd_cnt[button_index] - 1);
             
+            // check on underflow
             if(bcd_cnt[button_index] GE BASE)
             {
                 bcd_cnt[button_index] = BASE - 1;
-                
                 button_index++;
+                
                 if(button_index GE DIGISIZE)
                 {
                     button_index = 0;
@@ -118,6 +104,7 @@ GLOBAL Void Number_Handler(Void) {
             }
         }
 
+        // if there is no more EVENT_UPDATE_CNT pending display can updated
         if(!Event_tst(EVENT_UPDATE_CNT))
         {
             Event_set(EVENT_UPDATE_BCD);
@@ -129,18 +116,10 @@ GLOBAL Void Number_Handler(Void) {
 
 // ---------------------------------------------------------------------------- BCD Handling
 
-LOCAL Void Copy_Cnt(Void) {
-    tmp[0] = bcd_cnt[0];
-    tmp[1] = bcd_cnt[1];
-    tmp[2] = bcd_cnt[2];
-    tmp[3] = bcd_cnt[3];
-}
 
-
-LOCAL Void State0(Void) {
+static void State0(void) {
     if (Event_tst(EVENT_UPDATE_BCD)) {
         Event_clr(EVENT_UPDATE_BCD);
-        Copy_Cnt();
         idx = 1;
         state = State1;
         Event_set(EVENT_DONE_BCD);
@@ -150,11 +129,10 @@ LOCAL Void State0(Void) {
 LOCAL Void State1(Void) {
     if (Event_tst(EVENT_DONE_BCD)) {
         Event_clr(EVENT_DONE_BCD);
-        if (idx LE DIGISIZE) 
+        if (idx LE DIGISIZE)
         {
-            UChar ch = tmp[idx - 1];
-            ch += '0';                  // convert to ASCII?
-
+            UChar ch = bcd_cnt[idx - 1];
+            //ch += '0';                  // convert to ASCII? Will not display decimal point anymore (is set with D7 = 0 regarding datasheet)
             UCA1_emit(idx, ch);
             idx++;
         }
@@ -173,10 +151,10 @@ GLOBAL Void AS1108_Handler(Void) {
 // ---------------------------------------------------------------------------- Initialisation
 
 GLOBAL Void Handler_init(Void) {
-
-    pattern_cnt = MUSTER1;  // Should not be changed (because of initialisations)
+    pattern_cnt = MUSTER1;  // Should not be changed (because of initialisation)
     state = State0;         // initial state
     idx = 1;                // initial index
+    
     bcd_cnt[0] = 0;         // initial BCD counter
     bcd_cnt[1] = 0;
     bcd_cnt[2] = 0;

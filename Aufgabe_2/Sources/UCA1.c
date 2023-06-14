@@ -32,19 +32,19 @@ typedef struct {
 } TFrame;
 
 LOCAL const TFrame init[INITSIZE] = {
-   { 0x0E, 0x0C },  // internal oscillator, enable B/HEX decoding, enable SPI
-   { 0x0C, 0x81 },  // shutdown register := normal mode
-   { 0x0F, 0x00 },  // normal mode
-   { 0x01, 0x00 },
-   { 0x02, 0x00 },
-   { 0x03, 0x00 },
-   { 0x04, 0x00 },
-   { 0x09, 0xFF },  //
-   { 0x0A, 0x03 },  // intensity 7/32
-   { 0x0B, 0x03 }   // display all numbers
+   { 0x0E, 0x0C },  // internal oscillator, enable B/HEX decoding, enable SPI (0x0C = 0b00001100) [see data sheet p. 14]
+   { 0x0C, 0x81 },  // shutdown register. 0x81 = normal mode [see data sheet p. 11]
+   { 0x0F, 0x00 },  // normal mode = 0, display test = 1 [see data sheet p. 12]
+   { 0x01, 0x00 },  // set digit 0 to 0
+   { 0x02, 0x00 },  // set digit 1 to 0
+   { 0x03, 0x00 },  // set digit 2 to 0
+   { 0x04, 0x00 },  // set digit 3 to 0
+   { 0x09, 0xFF },  // decode mode: 0xFF = B/HEX decoding for all digits [see data sheet p. 12]
+   { 0x0A, 0x03 },  // intensity control 7/32. 0x03 = 7/32 [see data sheet p. 13]
+   { 0x0B, 0x03 }   // scan limit, display all numbers (digits 0-3) [see data sheet p. 13]
 };
 
-// #pragma FUNC_ALWAYS_INLINE(emit)
+//#pragma FUNC_ALWAYS_INLINE(emit)
 LOCAL Void emit(const UChar adr, const UChar val) {
    UChar ch = UCA1RXBUF;        // RXBUF auslesen, UCRXIFG := 0, UCOE := 0
    CLRBIT(P2OUT, BIT3);         // Select aktivieren
