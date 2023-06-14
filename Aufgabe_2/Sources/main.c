@@ -44,16 +44,16 @@ LOCAL Void CS_init(Void) {
 #pragma FUNC_ALWAYS_INLINE(GPIO_init)
 LOCAL Void GPIO_init(Void) {
    
-   /* Port definition:
- * Port 2: Pin 7 => output, LED1
- * Port 1: Pin 2 => output, LED2
- * Port 1: Pin 1 => input,  BTN1
- * Port 1: Pin 0 => input,  BTN2
- * Port 3: Pin 0 => input,  BTN3 (external button BTN 0)
- * Port 3: Pin 1 => input,  BTN4 (external button BTN 1)
- * Port 3: Pin 2 => input,  BTN5 (external button BTN 2)
- * Port 3: Pin 3 => input,  BTN6 (external button BTN 3)
- */
+ /* Port definition:
+  * Port 2: Pin 7 => output, LED1
+  * Port 1: Pin 2 => output, LED2
+  * Port 1: Pin 1 => input,  BTN1
+  * Port 1: Pin 0 => input,  BTN2
+  * Port 3: Pin 0 => input,  BTN3 (external button BTN 0)
+  * Port 3: Pin 1 => input,  BTN4 (external button BTN 1)
+  * Port 3: Pin 2 => input,  BTN5 (external button BTN 2)
+  * Port 3: Pin 3 => input,  BTN6 (external button BTN 3)
+  */
 
    //                   Port2       Port1
    //               Bit 76543210    76543210
