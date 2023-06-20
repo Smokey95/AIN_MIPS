@@ -31,6 +31,8 @@ typedef unsigned int TEvent;
 #define EVENT_BTN5  EVENT_5         // click on button 5 (external button 2)
 #define EVENT_BTN6  EVENT_6         // click on button 6 (external button 3)
 
+#define EVENT_UART  EVENT_7         // print uart event
+
 #define EVEMT_IMA   EVENT_10        // I�m Alive
 #define EVENT_UPDATE_BCD  EVENT_11  // ADD DESCRIPTION
 #define EVENT_DONE_BCD    EVENT_12  // ADD DESCRIPTION

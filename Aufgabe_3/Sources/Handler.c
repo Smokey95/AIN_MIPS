@@ -1,6 +1,7 @@
 #include <msp430.h>
 #include "Handler.h"
 #include "event.h"
+#include "UCA0.h"
 #include "UCA1.h"
 #include "TA0.h"
 
@@ -13,6 +14,7 @@ typedef Void (* VoidFunc)(Void);
 LOCAL Int   pattern_cnt;            // counter for blink pattern from task 1
 LOCAL UChar button_index;           // identify the external BCD Button that was pressed
 LOCAL UChar bcd_cnt[DIGISIZE];      // BCD counter
+LOCAL Char  bcd_uart[DIGISIZE + 2];
 
 // functional prototypes
 LOCAL Void State0(Void);
@@ -123,6 +125,7 @@ static void State0(void) {
         idx = 1;
         state = State1;
         Event_set(EVENT_DONE_BCD);
+        Event_set(EVENT_UART);
     }
 }
 
@@ -145,6 +148,29 @@ LOCAL Void State1(Void) {
 
 GLOBAL Void AS1108_Handler(Void) {
     (*state)();
+}
+
+GLOBAL Void get_bcd_cnt(Void) {
+    
+    // returns the BCD counter as a string with UART line ending (LSB first) e.g. "1234\r\n"
+    // the string is stored in bcd_uart
+    bcd_uart[0] = bcd_cnt[3] + '0';
+    bcd_uart[1] = bcd_cnt[2] + '0';
+    bcd_uart[2] = bcd_cnt[1] + '0';
+    bcd_uart[3] = bcd_cnt[0] + '0';
+    bcd_uart[4] = '\r';
+    bcd_uart[5] = '\n';
+
+}
+
+// ---------------------------------------------------------------------------- UART Handling
+GLOBAL Void UART_Handler(Void) {
+    
+    if(Event_tst(EVENT_UART)) {
+        Event_clr(EVENT_UART);
+        get_bcd_cnt();
+        UCA0_printf(bcd_uart);
+    }
 }
 
 
