@@ -4,6 +4,8 @@
 #include "uca0.h"
 
 LOCAL const Char * ptr;
+LOCAL UInt i;
+GLOBAL Char rx_buf[DIGISIZE + 1];
 
 #pragma FUNC_ALWAYS_INLINE(UCA0_init)
 GLOBAL Void UCA0_init(Void) {
@@ -32,26 +34,68 @@ GLOBAL Void UCA0_init(Void) {
              | 0                // Start Bit Interrupt Disable
              | 0                // Transmit Interrupt Disable
              | UCRXIE;          // Receive Interrupt Enable
+
+   i = 0;
 }
 
 #pragma vector = USCI_A0_VECTOR
 __interrupt Void UCA0_ISR(Void) {
    
+   LOCAL Char ch = '\0';
+   
    switch (__even_in_range(UCA0IV, 0x04)) {
       
-      case 0x02:  // -----------------------------------------------------------------> Vector 2: Receive buffer full
-         if (TSTBIT(UCA0STATW, UCBRK | UCRXERR)) {
+      case 0x02:  // ---------------------------------------------------------> Vector 2: Receive buffer full
+         
+         if (TSTBIT(UCA0STATW, UCBRK)) {  // ---------------------- break errror
+            set_error(BREAK_ERROR);
+            Char ch = UCA0RXBUF;          // dummy read
+            return;
+         }
+         
+         if (TSTBIT(UCA0STATW, UCRXERR)) { // -------------------- receive error
             Char ch = UCA0RXBUF; // dummy read
             return;
          }
-         if (UCA0RXBUF EQ '?') {
-            Event_set(EVENT_UART);
-            CLRBIT(UCA0IE, UCRXIE);                   // receive interrupt disable
-            __low_power_mode_off_on_exit();           // restore Active Mode on return
+         
+         ch = UCA0RXBUF;                  // read character
+         
+         //if (ch EQ '?') {
+         //   Event_set(EVENT_RXD);
+         //   set_error(NO_ERROR);
+         //} else 
+         
+         if (between('0', ch, '9')) {
+            rx_buf[i++] = ch;
+            //set_error(NO_ERROR);
+         } else if (ch EQ '\r'){
+            rx_buf[i] = '\0';
+            Event_set(EVENT_RXD);
+            //set_error(NO_ERROR);
+         } else {
+            i = 0;
+            set_error(CHARACTOR_ERROR);
+            return;
          }
+         
+         //CLRBIT(UCA0IE, UCRXIE);        // receive interrupt disable
+         __low_power_mode_off_on_exit();// restore Active Mode on return
+         
          break;
          
-      case 0x04:  // -----------------------------------------------------------------> Vector 4: Transmit buffer empty
+      case 0x04:  // ---------------------------------------------------------> Vector 4: Transmit buffer empty
+         
+         if (TSTBIT(UCA0STATW, UCBRK)) {  // ---------------------- break errror
+            set_error(BREAK_ERROR);
+            Char ch = UCA0RXBUF;          // dummy read
+            return;
+         }
+         
+         if (TSTBIT(UCA0STATW, UCRXERR)) { // -------------------- receive error
+            Char ch = UCA0RXBUF; // dummy read
+            return;
+         }
+         
          if (*ptr NE '\0') {
             UCA0TXBUF = *ptr++;
             return;

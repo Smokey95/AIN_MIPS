@@ -72,7 +72,7 @@ GLOBAL Void TA0_init(Void) {
    pattern_index        = 0;
    cur_pattern_val      = 0;
    
-   req_pattern_index    = 1;  // Initialise with pattern 1 (personal preference)
+   req_pattern_index    = 0;  // Initialise with pattern 0 (no error)
 
    CLRBIT(TA0CTL, MC0 | MC1   // stop mode
                   | TAIE      // disable interrupt

@@ -82,25 +82,25 @@ GLOBAL Void UCA1_init(Void) {
 }
 
 #define DATASIZE 2
-LOCAL UInt  idx;              // Index
-LOCAL UChar data[DATASIZE];   // Pointer auf das Datenfeldd
+LOCAL UInt  idx;                       // Index
+LOCAL UChar data[DATASIZE];            // Pointer auf das Datenfeldd
 
 GLOBAL Void UCA1_emit(const UChar adr, const UChar val) {
    idx  = 0;
    data[0] = adr;
    data[1] = val;
-   SETBIT(UCA1IFG, UCRXIFG); // indirekter Aufruf der ISR
+   SETBIT(UCA1IFG, UCRXIFG);           // indirekter Aufruf der ISR
 }
 
 #pragma vector = USCI_A1_VECTOR
 __interrupt Void UCA1_ISR(Void) {
-   UChar ch = UCA1RXBUF;          // RXBUF auslesen, UCRXIFG := 0, UCOE := 0
-   CLRBIT(P2OUT, BIT3);           // Select aktivieren
+   UChar ch = UCA1RXBUF;               // RXBUF auslesen, UCRXIFG := 0, UCOE := 0
+   CLRBIT(P2OUT, BIT3);                // Select aktivieren
    if (idx GE DATASIZE) {
-      SETBIT(P2OUT,  BIT3);       // Select deaktivieren
-      Event_set(EVENT_DONE_BCD);      // Event senden
+      SETBIT(P2OUT,  BIT3);            // Select deaktivieren
+      Event_set(EVENT_DONE_BCD);       // Event senden
       __low_power_mode_off_on_exit();
    } else {
-      UCA1TXBUF = data[idx++];    // output next byte
+      UCA1TXBUF = data[idx++];         // output next byte
    }
 }

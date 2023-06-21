@@ -5,7 +5,6 @@
 #include "UCA1.h"
 #include "TA0.h"
 
-#define DIGISIZE 4
 #define BASE     10                  // base of the number system can be selected between 2 and 16
 
 // data type of a constant function pointer
@@ -14,7 +13,7 @@ typedef Void (* VoidFunc)(Void);
 LOCAL Int   pattern_cnt;            // counter for blink pattern from task 1
 LOCAL UChar button_index;           // identify the external BCD Button that was pressed
 LOCAL UChar bcd_cnt[DIGISIZE];      // BCD counter
-LOCAL Char  bcd_uart[DIGISIZE + 2];
+LOCAL Char  bcd_uart[DIGISIZE + 2]; // BCD counter array for UART TX (2 additional chars for '\r' and '\n')
 
 // functional prototypes
 LOCAL Void State0(Void);
@@ -22,6 +21,8 @@ LOCAL Void State1(Void);
 
 LOCAL VoidFunc state;               // function pointer to the current state function
 LOCAL UInt idx;                     // index for the BCD counter
+
+LOCAL UInt error;                   // error variable for UART
 
 // ---------------------------------------------------------------------------- Button Handling
 
@@ -125,7 +126,7 @@ static void State0(void) {
         idx = 1;
         state = State1;
         Event_set(EVENT_DONE_BCD);
-        Event_set(EVENT_UART);
+        Event_set(EVENT_TXD);
     }
 }
 
@@ -166,11 +167,47 @@ GLOBAL Void get_bcd_cnt(Void) {
 // ---------------------------------------------------------------------------- UART Handling
 GLOBAL Void UART_Handler(Void) {
     
-    if(Event_tst(EVENT_UART)) {
-        Event_clr(EVENT_UART);
+    if(Event_tst(EVENT_RXD)) {
+        Event_clr(EVENT_RXD);
+        bcd_cnt[0] = rx_buf[0] - '0';
+        bcd_cnt[1] = rx_buf[1] - '0';
+        bcd_cnt[2] = rx_buf[2] - '0';
+        bcd_cnt[3] = rx_buf[3] - '0';
+        Event_set(EVENT_UPDATE_BCD);
+    }
+    
+    if(Event_tst(EVENT_TXD)) {
+        Event_clr(EVENT_TXD);
         get_bcd_cnt();
         UCA0_printf(bcd_uart);
     }
+}
+
+
+// ---------------------------------------------------------------------------- Error Handling
+GLOBAL Void Error_Handler(Void) {
+    
+    if(Event_tst(EVENT_ERR)) {
+        Event_clr(EVENT_ERR);
+        
+        // error handling
+        if       (error == BREAK_ERROR) {
+            set_blink_muster(MUSTER3);
+        } else if(error == FROVPAR_ERROR) {
+            set_blink_muster(MUSTER6);
+        } else if(error == CHARACTOR_ERROR) {
+            set_blink_muster(MUSTER5);
+        } else if(error == BUFFER_ERROR) {
+            set_blink_muster(MUSTER4);
+        } else {
+            set_blink_muster(MUSTER1);
+        }
+    }
+}
+
+GLOBAL Void set_error(UChar err) {
+    error = err;
+    Event_set(EVENT_ERR);
 }
 
 

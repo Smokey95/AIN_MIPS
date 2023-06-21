@@ -98,6 +98,8 @@ GLOBAL Void main(Void) {
       AS1108_Handler();    // handle AS1108 events
       UART_Handler();      // handle UART events
       
+      Error_Handler();     // handle errors
+      
       if (Event_err()) {
          SETBIT(P1OUT, BIT2); // LED on
       }
