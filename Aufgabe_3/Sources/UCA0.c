@@ -60,18 +60,26 @@ __interrupt Void UCA0_ISR(Void) {
          
          ch = UCA0RXBUF;                  // read character
          
-         //if (ch EQ '?') {
-         //   Event_set(EVENT_RXD);
-         //   set_error(NO_ERROR);
-         //} else 
-         
          if (between('0', ch, '9')) {
-            rx_buf[i++] = ch;
-            //set_error(NO_ERROR);
+            if(i < DIGISIZE){
+               rx_buf[i++] = ch;
+               set_error(BYTE_RECEIVED);
+            } else {
+               i = 0;
+               set_error(BUFFER_ERROR);
+               return;
+            }
          } else if (ch EQ '\r'){
-            rx_buf[i] = '\0';
-            Event_set(EVENT_RXD);
-            //set_error(NO_ERROR);
+            if(i == DIGISIZE){
+               rx_buf[i] = '\0';
+               i = 0;
+               Event_set(EVENT_RXD);
+               set_error(NO_ERROR);
+            } else {
+               i = 0;
+               set_error(BUFFER_ERROR);
+               return;
+            }
          } else {
             i = 0;
             set_error(CHARACTOR_ERROR);
@@ -79,6 +87,7 @@ __interrupt Void UCA0_ISR(Void) {
          }
          
          //CLRBIT(UCA0IE, UCRXIE);        // receive interrupt disable
+         
          __low_power_mode_off_on_exit();// restore Active Mode on return
          
          break;

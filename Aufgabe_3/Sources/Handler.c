@@ -13,7 +13,7 @@ typedef Void (* VoidFunc)(Void);
 LOCAL Int   pattern_cnt;            // counter for blink pattern from task 1
 LOCAL UChar button_index;           // identify the external BCD Button that was pressed
 LOCAL UChar bcd_cnt[DIGISIZE];      // BCD counter
-LOCAL Char  bcd_uart[DIGISIZE + 2]; // BCD counter array for UART TX (2 additional chars for '\r' and '\n')
+LOCAL Char  bcd_uart[DIGISIZE + 3]; // BCD counter array for UART TX (2 additional chars for '\r' and '\n')
 
 // functional prototypes
 LOCAL Void State0(Void);
@@ -111,6 +111,7 @@ GLOBAL Void Number_Handler(Void) {
         if(!Event_tst(EVENT_UPDATE_CNT))
         {
             Event_set(EVENT_UPDATE_BCD);
+            Event_set(EVENT_TXD);
         }
         
     }
@@ -125,8 +126,7 @@ static void State0(void) {
         Event_clr(EVENT_UPDATE_BCD);
         idx = 1;
         state = State1;
-        Event_set(EVENT_DONE_BCD);
-        Event_set(EVENT_TXD);
+        Event_set(EVENT_DONE_BCD);  
     }
 }
 
@@ -161,7 +161,7 @@ GLOBAL Void get_bcd_cnt(Void) {
     bcd_uart[3] = bcd_cnt[0] + '0';
     bcd_uart[4] = '\r';
     bcd_uart[5] = '\n';
-
+    bcd_uart[6] = '\0';
 }
 
 // ---------------------------------------------------------------------------- UART Handling
@@ -169,10 +169,10 @@ GLOBAL Void UART_Handler(Void) {
     
     if(Event_tst(EVENT_RXD)) {
         Event_clr(EVENT_RXD);
-        bcd_cnt[0] = rx_buf[0] - '0';
-        bcd_cnt[1] = rx_buf[1] - '0';
-        bcd_cnt[2] = rx_buf[2] - '0';
-        bcd_cnt[3] = rx_buf[3] - '0';
+        bcd_cnt[0] = rx_buf[3] - '0';
+        bcd_cnt[1] = rx_buf[2] - '0';
+        bcd_cnt[2] = rx_buf[1] - '0';
+        bcd_cnt[3] = rx_buf[0] - '0';
         Event_set(EVENT_UPDATE_BCD);
     }
     
