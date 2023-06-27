@@ -13,9 +13,9 @@ GLOBAL Void UCA0_init(Void) {
    SETBIT(UCA0CTLW0, UCSWRST);  // UCA0 software reset
 
    UCA0CTLW1 = 0x0002;          // deglitch time approximately 100 ns
-   UCA0BRW   = 4;               // set clock prescaler for 9600 baud
-   UCA0MCTLW = 0x00 << 8        // second modulation stage
-             | 0x00             // first modulation stage
+   UCA0BRW   = 2;               // set clock prescaler for 14400 baud
+   UCA0MCTLW = 0xD6 << 8        // second modulation stage
+             | 0x0A << 4        // first modulation stage
              | UCOS16;          // enable 16 times oversampling
 
    UCA0CTLW0 = UCPEN            // enable parity
@@ -94,14 +94,15 @@ __interrupt Void UCA0_ISR(Void) {
          
       case 0x04:  // ---------------------------------------------------------> Vector 4: Transmit buffer empty
          
-         if (TSTBIT(UCA0STATW, UCBRK)) {  // ---------------------- break errror
-            set_error(BREAK_ERROR);
+         if (TSTBIT(UCA0STATW, UCBRK)) {  // ---------------------- break errror 
             Char ch = UCA0RXBUF;          // dummy read
+            set_error(BREAK_ERROR);
             return;
          }
          
          if (TSTBIT(UCA0STATW, UCRXERR)) { // -------------------- receive error
             Char ch = UCA0RXBUF; // dummy read
+            set_error(FROVPAR_ERROR);
             return;
          }
          
@@ -111,6 +112,7 @@ __interrupt Void UCA0_ISR(Void) {
          }
          CLRBIT(UCA0IE, UCTXIE);                      // transmit interrupt disable
          Char ch = UCA0RXBUF;                         // dummy read
+         set_error(NO_ERROR);
          SETBIT(UCA0IE, UCRXIE);                      // receive interrupt enable
          break;
    }
