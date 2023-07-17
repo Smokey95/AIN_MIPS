@@ -5,6 +5,7 @@
 
 LOCAL const Char * ptr;
 LOCAL UInt i;
+LOCAL Char ch;
 GLOBAL Char rx_buf[DIGISIZE + 1];
 
 #pragma FUNC_ALWAYS_INLINE(UCA0_init)
@@ -36,12 +37,12 @@ GLOBAL Void UCA0_init(Void) {
              | UCRXIE;          // Receive Interrupt Enable
 
    i = 0;
+   ch = '\0';
 }
 
 #pragma vector = USCI_A0_VECTOR
 __interrupt Void UCA0_ISR(Void) {
    
-   LOCAL Char ch = '\0';
    
    switch (__even_in_range(UCA0IV, 0x04)) {
       

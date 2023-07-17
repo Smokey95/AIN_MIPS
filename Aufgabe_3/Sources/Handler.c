@@ -111,7 +111,6 @@ GLOBAL Void Number_Handler(Void) {
         if(!Event_tst(EVENT_UPDATE_CNT))
         {
             Event_set(EVENT_UPDATE_BCD);
-            Event_set(EVENT_TXD);
         }
         
     }
@@ -143,6 +142,7 @@ LOCAL Void State1(Void) {
         else
         {
             state = State0;
+            Event_set(EVENT_TXD);
         }
     }
 }
